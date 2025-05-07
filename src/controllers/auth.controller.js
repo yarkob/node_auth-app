@@ -1,26 +1,60 @@
+const { ApiError } = require('../exceptions/api.error');
 const { User } = require('../models/User.model');
-const { emailService } = require('../services/email.service');
-const { v4 } = require('uuid');
-const uuidv4 = v4;
+const { userService } = require('../services/user.service');
+const { jwtService } = require('../services/jwt.service');
 
-const authController = (req, res) => {
-  res.send('hello world');
+const validateUsername = (value) => {
+  if (!value) {
+    return 'Username is required';
+  }
+
+  if (value.length < 3) {
+    return 'Username should have at least 3 characters';
+  }
+
+  if (value.length > 20) {
+    return 'Username should have less than 20 characters';
+  }
+};
+
+const validateEmail = (value) => {
+  if (!value) {
+    return 'Email is required';
+  }
+
+  const emailPattern = /^[\w.+-]+@([\w-]+\.){1,3}[\w-]{2,}$/;
+
+  if (!emailPattern.test(value)) {
+    return 'Email is not valid';
+  }
+};
+
+const validatePassword = (value) => {
+  if (!value) {
+    return 'Password is required';
+  }
+
+  if (value.length < 6) {
+    return 'At least 6 characters';
+  }
 };
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
-  const activationToken = uuidv4();
 
-  const newUser = await User.create({
-    name,
-    email,
-    password,
-    activationToken,
-  });
+  const errors = {
+    name: validateUsername(name),
+    email: validateEmail(email),
+    password: validatePassword(password),
+  };
 
-  await emailService.sendActivationEmail(email, activationToken);
+  if (errors.name || errors.email || errors.password) {
+    throw ApiError.BadRequest('Bad request', errors);
+  }
 
-  res.send(newUser);
+  await userService.register({ name, email, password });
+
+  res.send({ message: 'OK' });
 };
 
 const activate = async (req, res) => {
@@ -28,17 +62,34 @@ const activate = async (req, res) => {
   const user = await User.findOne({ where: { activationToken } });
 
   if (!user) {
-    res.sendStatus(404);
+    res.sendStatus(500);
 
     return;
   }
 
   user.activationToken = null;
   user.save();
+
+  res.send(user);
 };
 
-module.exports = {
-  authController,
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await userService.findByEmail(email);
+
+  if (!user || user.password !== password) {
+    res.send(401);
+  }
+
+  const normalizedUser = userService.normalize(user);
+  const accessToken = jwtService.sign(normalizedUser);
+
+  res.send({ user: normalizedUser, accessToken });
+};
+
+module.exports.authController = {
   register,
   activate,
+  login,
 };

@@ -5,6 +5,8 @@ require('dotenv/config');
 const express = require('express');
 const { authRouter } = require('./routes/auth.route');
 const cors = require('cors');
+const { userRouter } = require('./routes/user.route');
+const { errorMiddleware } = require('./middlewares/error.middleware');
 
 const PORT = process.env.PORT || 3005;
 
@@ -20,9 +22,12 @@ app.use(
 );
 
 app.use(authRouter);
+app.use('/users', userRouter);
 
 app.get('/', (req, res) => {
   res.send('hello world!');
 });
+
+app.use(errorMiddleware);
 
 app.listen(PORT, () => {});

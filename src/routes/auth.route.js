@@ -1,13 +1,17 @@
 const express = require('express');
-const { authController, register } = require('../controllers/auth.controller');
+const { authController } = require('../controllers/auth.controller');
+const { catchError } = require('../utils/catchError');
 
 const authRouter = new express.Router();
 
-authRouter.post('/', authController);
+authRouter.post('/registration', catchError(authController.register));
 
-authRouter.post('/registration', register);
+authRouter.get(
+  '/activation/:activationToken',
+  catchError(authController.activate),
+);
 
-authRouter.post('/activation/:activationToken');
+authRouter.post('/login', catchError(authController.login));
 
 module.exports = {
   authRouter,
