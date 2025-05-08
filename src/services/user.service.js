@@ -9,8 +9,8 @@ const getAllActivated = async () => {
   return User.findAll({ where: { activationToken: null } });
 };
 
-const normalize = ({ id, email }) => {
-  return { id, email };
+const normalize = ({ name, id, email }) => {
+  return { name, id, email };
 };
 
 const findByEmail = (email) => {

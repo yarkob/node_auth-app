@@ -7,12 +7,14 @@ const { authRouter } = require('./routes/auth.route');
 const cors = require('cors');
 const { userRouter } = require('./routes/user.route');
 const { errorMiddleware } = require('./middlewares/error.middleware');
+const cookieParser = require('cookie-parser');
 
 const PORT = process.env.PORT || 3005;
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(
   cors({

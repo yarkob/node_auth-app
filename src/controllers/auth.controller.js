@@ -2,6 +2,7 @@ const { ApiError } = require('../exceptions/api.error');
 const { User } = require('../models/User.model');
 const { userService } = require('../services/user.service');
 const { jwtService } = require('../services/jwt.service');
+const { tokenService } = require('../services/token.service');
 
 const validateUsername = (value) => {
   if (!value) {
@@ -82,14 +83,53 @@ const login = async (req, res) => {
     res.send(401);
   }
 
+  await generateTokens(res, user);
+};
+
+const refresh = async (req, res) => {
+  const { refreshToken } = req.cookies;
+
+  const user = jwtService.verifyRefresh(refreshToken);
+  const token = await tokenService.getByToken(refreshToken);
+
+  if (!user || !token) {
+    throw ApiError.Unauthorized();
+  }
+
+  await generateTokens(res, user);
+};
+
+const generateTokens = async (res, user) => {
   const normalizedUser = userService.normalize(user);
   const accessToken = jwtService.sign(normalizedUser);
+  const refreshToken = jwtService.signRefresh(normalizedUser);
 
+  await tokenService.save(normalizedUser.id, refreshToken);
+
+  res.cookie('refreshToken', refreshToken, {
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+  });
   res.send({ user: normalizedUser, accessToken });
+};
+
+const logout = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  const user = await jwtService.verifyRefresh(refreshToken);
+
+  if (!user || !refreshToken) {
+    throw ApiError.Unauthorized();
+  }
+
+  await tokenService.remove(user.id);
+
+  res.sendStatus(204);
 };
 
 module.exports.authController = {
   register,
   activate,
   login,
+  refresh,
+  logout,
 };
