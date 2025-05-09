@@ -8,6 +8,7 @@ const cors = require('cors');
 const { userRouter } = require('./routes/user.route');
 const { errorMiddleware } = require('./middlewares/error.middleware');
 const cookieParser = require('cookie-parser');
+const { profileRouter } = require('./routes/profile.route');
 
 const PORT = process.env.PORT || 3005;
 
@@ -25,6 +26,7 @@ app.use(
 
 app.use(authRouter);
 app.use('/users', userRouter);
+app.use('/profile', profileRouter);
 
 app.get('/', (req, res) => {
   res.send('hello world!');

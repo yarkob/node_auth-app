@@ -1,19 +1,20 @@
 const { Token } = require('../models/token.model');
 
-const save = async (userId, newToken) => {
+const save = async (userId, refreshToken) => {
   const token = await Token.findOne({ where: { userId } });
 
-  if (!token) {
-    await Token.create({ userId, refreshToken: newToken });
+  if (token) {
+    token.refreshToken = refreshToken;
+
+    await token.save();
 
     return;
   }
 
-  token.refreshToken = newToken;
-  await token.save();
+  await Token.create({ userId, refreshToken });
 };
 
-const getByToken = async (refreshToken) => {
+const getByToken = (refreshToken) => {
   return Token.findOne({ where: { refreshToken } });
 };
 

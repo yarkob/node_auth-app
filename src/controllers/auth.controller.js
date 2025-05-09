@@ -71,6 +71,7 @@ const activate = async (req, res) => {
   user.activationToken = null;
   user.save();
 
+  await generateTokens(res, user);
   res.send(user);
 };
 
@@ -79,8 +80,12 @@ const login = async (req, res) => {
 
   const user = await userService.findByEmail(email);
 
-  if (!user || user.password !== password) {
-    res.send(401);
+  if (!user) {
+    throw ApiError.BadRequest('User with this email does not exist');
+  }
+
+  if (user.password !== password) {
+    throw ApiError.BadRequest('Password is wrong');
   }
 
   await generateTokens(res, user);
