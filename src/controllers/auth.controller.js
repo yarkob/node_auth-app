@@ -3,6 +3,7 @@ const { User } = require('../models/User.model');
 const { userService } = require('../services/user.service');
 const { jwtService } = require('../services/jwt.service');
 const { tokenService } = require('../services/token.service');
+const { emailService } = require('../services/email.service');
 
 const validateUsername = (value) => {
   if (!value) {
@@ -131,12 +132,47 @@ const logout = async (req, res) => {
   res.sendStatus(204);
 };
 
+const requestChangePassword = async (req, res) => {
+  const { email } = req.body;
+  const href = `${process.env.CLIENT_HOST}/change-password`;
+  const html = `
+    <p>To reset your password please click the following link: </p>
+    <a href="${href}"}>${href}</a>
+  `;
+
+  await emailService.send({ email, subject: 'Reset password', html });
+
+  res.send({ message: 'OK' });
+};
+
+const changePassword = async (req, res) => {
+  const { email, password, confirmPassword } = req.body;
+  const user = await userService.findByEmail(email);
+
+  if (!user) {
+    throw ApiError.BadRequest('User with this email does not exist');
+  }
+
+  if (password !== confirmPassword) {
+    throw ApiError.BadRequest(
+      'Password should be the same as confirm password',
+    );
+  }
+
+  user.password = password;
+  user.save();
+
+  res.send({ message: 'OK' });
+};
+
 module.exports.authController = {
   register,
   activate,
   login,
   refresh,
   logout,
+  requestChangePassword,
+  changePassword,
 };
 
 module.exports.validation = {

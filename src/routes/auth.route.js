@@ -17,6 +17,13 @@ authRouter.get('/refresh', catchError(authController.refresh));
 
 authRouter.post('/logout', catchError(authController.logout));
 
+authRouter.post(
+  '/requestChangePassword',
+  catchError(authController.requestChangePassword),
+);
+
+authRouter.post('/changePassword', catchError(authController.changePassword));
+
 module.exports = {
   authRouter,
 };
