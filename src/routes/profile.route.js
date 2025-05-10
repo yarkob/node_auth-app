@@ -8,4 +8,6 @@ profileRouter.post('/name', catchError(profileController.changeName));
 
 profileRouter.post('/email', catchError(profileController.changeEmail));
 
+profileRouter.post('/password', catchError(profileController.changePassword));
+
 module.exports = { profileRouter };

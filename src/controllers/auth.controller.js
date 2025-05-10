@@ -138,3 +138,9 @@ module.exports.authController = {
   refresh,
   logout,
 };
+
+module.exports.validation = {
+  validateUsername,
+  validateEmail,
+  validatePassword,
+};
