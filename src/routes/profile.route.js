@@ -4,6 +4,8 @@ const { catchError } = require('../utils/catchError');
 
 const profileRouter = new express.Router();
 
-profileRouter.post('/', catchError(profileController.changeName));
+profileRouter.post('/name', catchError(profileController.changeName));
+
+profileRouter.post('/email', catchError(profileController.changeEmail));
 
 module.exports = { profileRouter };
